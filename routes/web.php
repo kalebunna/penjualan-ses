@@ -32,7 +32,5 @@ Route::middleware('auth')->group(function () {
     Route::get('dashboard/forcasting', [\App\Http\Controllers\ForcastingController::class, 'index'])->name('forcasting.index');
     Route::post('dashboard/forcasting/create', [\App\Http\Controllers\ForcastingController::class, 'forecast'])->name('forcasting.create');
     Route::delete('dashboard/forcasting/delete/{id}', [\App\Http\Controllers\ForcastingController::class, 'destroy'])->name('forcasting.delete');
-
 });
-
 require __DIR__.'/auth.php';

@@ -20,7 +20,6 @@ class DashboardController extends Controller
                     ->groupByRaw('To_char(tanggal, \'YYYY-MM\')')
                     ->orderByRaw('To_char(tanggal, \'YYYY-MM\')')
                     ->get();
-//        dd($penjualan->pluck('bulan'));
 
         //untuk menghitung total semua penjualan
         $totalPenjualan = Penjualan::sum('total');
