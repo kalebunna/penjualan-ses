@@ -93,7 +93,8 @@ class ForcastingController extends Controller
         $MAD = $this->sesService->meanAbsoluteDeviation($aktual, $forcasing_result); //Proses Mean Absolute Deviation
         $MAPE = $this->sesService->meanAbsolutePercentageError($aktual, $forcasing_result); //Proses Mean Absolute Percentage Error
         $MSE = $this->sesService->meanSquaredError($aktual, $forcasing_result); //Proses Mean Squared Error
-//
+//        dd($MAD, $MAPE, $MSE);
+
         ForcasResult::create([
             'parameter_id' => $parameter->id,
             'alpha' => $parameter->alpha,
