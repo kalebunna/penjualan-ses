@@ -10,17 +10,19 @@ class SesService
      * @param array $b the array of observed values
      * @return array the array of forecasted values
      */
-    public function singleExponentialSmoothing(float $a, array $b): array | string
+    public function singleExponentialSmoothing(float $a, array $b, bool $nextPeriod = false): array|string
     {
-        $forcast = [];
-        $forcast[0] = $b[0];
         if (count($b) < 2) {
             throw new \Exception('Data tidak boleh kosong dan minimal harus ada dua data');
         }
+
+        $forecast = [];
+        $forecast[0] = $b[0]; // forecast pertama = aktual pertama
+
         for ($i = 1; $i < count($b); $i++) {
-            $forcast[$i] = $a * $b[$i] + (1 - $a) * $forcast[$i - 1];
+            $forecast[$i] = round($a * $b[$i] + (1 - $a) * $forecast[$i - 1]);
         }
-        return $forcast;
+        return $forecast;
     }
 
     /**
@@ -37,11 +39,13 @@ class SesService
             return new \Exception('Array is empty');
         }
         $totalerror = 0;
-        for ($i = 0; $i < $n; $i++) {
-            $error = $aktual[$i] - $forcast[$i];
+        $counter = 0;
+        for ($i = 1; $i < $n; $i++) {
+            $error = $aktual[$i] - $forcast[$i-1];
             $totalerror += pow($error, 2);
+            $counter++;
         }
-        $mse = $totalerror / $n;
+        $mse = $totalerror / $counter;
         return $mse;
     }
 
@@ -59,11 +63,15 @@ class SesService
         if ($n === 0 || count($forcast) === 0) {
             return new \Exception('Array is empty');
         }
-        for ($i = 0; $i < $n; $i++) {
-            $r = $aktual[$i] - $forcast[$i];
+
+        $count = 0;
+        for ($i = 1; $i < $n; $i++) {
+            $r = $aktual[$i] - $forcast[$i-1];
             $mad += abs($r);
+            $count++;
         }
-        return $mad / $n;
+
+        return $mad / $count;
     }
 
     /**
@@ -78,12 +86,14 @@ class SesService
         $sum = 0;
         $n = count($aktual);
         if ($n === 0 || count($forcast) === 0) {
-            return new \Exception('Array is empty');
+            throw new \Exception('Array is empty');
         }
-        for ($i = 0; $i < $n; $i++) {
-            $r = $aktual[$i] - $forcast[$i];
+        $count = 0;
+        for ($i = 1; $i < $n; $i++) {
+            $r = $aktual[$i] - $forcast[$i-1];
             $sum += abs($r / $aktual[$i]);
+            $count++;
         }
-        return ($sum / $n) * 100;
+        return ($sum / $count) * 100;
     }
 }
