@@ -104,10 +104,10 @@ class ForcastingController extends Controller
                     'preode' => Carbon::parse($penjualan[$i]->bulan)->endOfMonth()->format('Y-m-d'),
                     'actual' => $penjualan[$i]->total,
                     'forcas_result' => $forcasing_result[$i],
-                    'MAD' => $MAD[$i],
+                    'MAD' => round($MAD[$i],1),
                     'MAP' => round($MAPE[$i], 2),
-                    'err' => $penjualan[$i]->total - $forcasing_result[$i],
-                    'MSE' => round($MSE[$i], 2),
+                    'err' => round($penjualan[$i]->total - $forcasing_result[$i],1),
+                    'MSE' => round($MSE[$i], 1),
                     'parameter_id' => $parameter->id,
                 ];
         }
@@ -115,10 +115,10 @@ class ForcastingController extends Controller
            'preode' => Carbon::parse($penjualan[count($penjualan) - 1]->bulan)->endOfMonth()->addMonth()->format('Y-m-d'),
            'actual' => 0,
            'forcas_result' => $forcasing_result[count($forcasing_result)-1],
-           'MAD' => $madNextPeriod,
+           'MAD' => round($madNextPeriod, 1),
            'MAP' => round($mapeNextPeriod, 2),
            'err' => 0,
-           'MSE' => round($mseNextPeriod, 2),
+           'MSE' => round($mseNextPeriod, 1),
            'parameter_id' => $parameter->id,
        ];
         foreach ($data as $d) {

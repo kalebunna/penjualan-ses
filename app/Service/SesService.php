@@ -17,10 +17,14 @@ class SesService
         }
 
         $forecast = [];
-        $forecast[0] = $b[0]; // forecast pertama = aktual pertama
+        $forecast[0] = (float) $b[0]; // forecast pertama = aktual pertama
 
         for ($i = 1; $i <= count($b); $i++) {
-            $forecast[$i] = round($a * $b[$i-1] + (1 - $a) * $forecast[$i - 1]);
+            $value = $a * $b[$i-1] + (1 - $a) * $forecast[$i - 1];
+            $forecast[$i] = round($value, 1);
+            if ($nextPeriod === true) {
+                return $forecast[$i];
+            }
         }
         return $forecast;
     }
