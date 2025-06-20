@@ -12,9 +12,9 @@ Route::get('/', function () {
 
 
 Route::middleware('auth')->group(function () {
-//    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    //    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    //    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    //    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     //penjualan Route
     Route::get('/dashboard/penjualan', [\App\Http\Controllers\PenjualanController::class, 'index'])->name('penjualan.index');
@@ -33,4 +33,4 @@ Route::middleware('auth')->group(function () {
     Route::post('dashboard/forcasting/create', [\App\Http\Controllers\ForcastingController::class, 'forecast'])->name('forcasting.create');
     Route::delete('dashboard/forcasting/delete/{id}', [\App\Http\Controllers\ForcastingController::class, 'destroy'])->name('forcasting.delete');
 });
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

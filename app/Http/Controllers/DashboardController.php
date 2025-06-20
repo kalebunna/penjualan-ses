@@ -15,28 +15,28 @@ class DashboardController extends Controller
         $p = Parameters::all();
 
         //query untuk mengambil data penjualan bulan terakhir
-        $penjualan = DB::table('penjualan')
-                    ->selectRaw('To_char(tanggal, \'YYYY-MM\') AS bulan, SUM(total) AS total')
-                    ->groupByRaw('To_char(tanggal, \'YYYY-MM\')')
-                    ->orderByRaw('To_char(tanggal, \'YYYY-MM\')')
-                    ->get();
+        // $penjualan = DB::table('penjualan')
+        //     ->selectRaw('To_char(tanggal, \'YYYY-MM\') AS bulan, SUM(total) AS total')
+        //     ->groupByRaw('To_char(tanggal, \'YYYY-MM\')')
+        //     ->orderByRaw('To_char(tanggal, \'YYYY-MM\')')
+        //     ->get();
 
         //untuk menghitung total semua penjualan
         $totalPenjualan = Penjualan::sum('total');
 
         //untuk mengambil hasil prediksi terbaru
         $prediksiPenjualan = ForcasResult::select('preode', 'forcas_result')
-                    ->orderBy('preode', 'desc')
-                    ->orderBy('created_at', 'desc')
-                    ->first();
+            ->orderBy('preode', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->first();
 
         //MYSQL query
-        // $penjualan = DB::table('penjualan')
-        //             ->selectRaw('DATE_FORMAT(tanggal, \'%Y-%m\') AS bulan, SUM(total) AS total')
-        //             ->groupByRaw('DATE_FORMAT(tanggal, \'%Y-%m\')')
-        //             ->orderByRaw('DATE_FORMAT(tanggal, \'%Y-%m\') DESC')
-        //             ->limit(1)
-        //             ->first();
+        $penjualan = DB::table('penjualan')
+            ->selectRaw('DATE_FORMAT(tanggal, \'%Y-%m\') AS bulan, SUM(total) AS total')
+            ->groupByRaw('DATE_FORMAT(tanggal, \'%Y-%m\')')
+            ->orderByRaw('DATE_FORMAT(tanggal, \'%Y-%m\') DESC')
+            ->limit(1)
+            ->first();
 
         $totalParameters = count($p);
 
@@ -52,18 +52,22 @@ class DashboardController extends Controller
                 return $group->unique('preode')->values();
             });
         $series = [];
-//        dd($forcastCart);
+        //        dd($forcastCart);
         foreach ($forcastCart as $key => $value) {
             $series[] = [
                 'name' => (string)$key,
                 'data' => $value->pluck('forcas_result'),
             ];
         }
-//        dd($series);
-        $categories = $forcastCart->first()->pluck('preode')->map(function ($item) {
-            return date('Y-m', strtotime($item));
-        });
-//        dd($categories);
-        return view('dahsboard', compact('totalParameters','penjualan', 'totalPenjualan', 'prediksiPenjualan', 'categories', 'series', 'categories'));
+        //        dd($series);
+        $categories = [];
+        if (!$forcastCart->isEmpty()) {
+            $categories = $forcastCart->first()->pluck('preode')->map(function ($item) {
+                return date('Y-m', strtotime($item));
+            });
+        }
+
+        //        dd($categories);
+        return view('dahsboard', compact('totalParameters', 'penjualan', 'totalPenjualan', 'prediksiPenjualan', 'categories', 'series', 'categories'));
     }
 }

@@ -18,7 +18,7 @@
                                     </div>
                                     <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
                                         <h6 class="text-muted font-semibold">Total Parameter</h6>
-                                        <h6 class="font-extrabold mb-0">{{$totalParameters}}</h6>
+                                        <h6 class="font-extrabold mb-0">{{ $totalParameters }}</h6>
                                     </div>
                                 </div>
                             </div>
@@ -35,7 +35,7 @@
                                     </div>
                                     <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
                                         <h6 class="text-muted font-semibold">Total Penjualan</h6>
-                                        <h6 class="font-extrabold mb-0">{{$totalPenjualan}}</h6>
+                                        <h6 class="font-extrabold mb-0">{{ $totalPenjualan }}</h6>
                                     </div>
                                 </div>
                             </div>
@@ -52,8 +52,12 @@
                                         </div>
                                     </div>
                                     <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                                        <h6 class="text-muted font-semibold">Penjualan {{\Carbon\Carbon::createFromFormat('Y-m', $penjualan->last()->bulan)->translatedFormat('F Y')}}</h6>
-                                        <h6 class="font-extrabold mb-0">{{$penjualan->last()->total}}</h6>
+                                        @isset($penjualan)
+                                            <h6 class="text-muted font-semibold">Penjualan
+                                                {{ \Carbon\Carbon::createFromFormat('Y-m', $penjualan->last()->bulan)->translatedFormat('F Y') }}
+                                            </h6>
+                                            <h6 class="font-extrabold mb-0">{{ $penjualan->last()->total }}</h6>
+                                        @endisset
                                     </div>
                                 </div>
                             </div>
@@ -70,9 +74,14 @@
                                         </div>
                                     </div>
                                     <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                                        <h6 class="text-muted font-semibold">Prediksi {{ \Carbon\Carbon::createFromFormat('Y-m-d', $prediksiPenjualan->preode)->locale('id')->translatedFormat('F Y') }}
-                                        </h6>
-                                        <h6 class="font-extrabold mb-0">{{$prediksiPenjualan->forcas_result}}</h6>
+                                        @isset($prediksiPenjualan)
+                                            <h6 class="text-muted
+                                        <h6 class="text-muted
+                                                font-semibold">Prediksi
+                                                {{ \Carbon\Carbon::createFromFormat('Y-m-d', $prediksiPenjualan->preode)->locale('id')->translatedFormat('F Y') }}
+                                            </h6>
+                                            <h6 class="font-extrabold mb-0">{{ $prediksiPenjualan->forcas_result }}</h6>
+                                        @endisset
                                     </div>
                                 </div>
                             </div>
@@ -114,7 +123,9 @@
         let optionsPenjualan = {
             series: [{
                 name: 'Penjualan',
-                data: @json($penjualan->pluck('total'))
+                data: @isset($penjualan)
+                    @json($penjualan->pluck('total'))
+                @endisset
             }],
             chart: {
                 type: 'bar',
@@ -136,7 +147,9 @@
                 colors: ['transparent']
             },
             xaxis: {
-                categories: @json($penjualan->pluck('bulan')),
+                categories: @isset($penjualan)
+                    @json($penjualan->pluck('bulan')),
+                @endisset
             },
             yaxis: {
                 title: {
@@ -148,14 +161,14 @@
             },
             tooltip: {
                 y: {
-                    formatter: function (val) {
-                        return  val
+                    formatter: function(val) {
+                        return val
                     }
                 }
             }
         };
 
-        let areaOptions ={
+        let areaOptions = {
             series: {!! json_encode($series) !!},
             chart: {
                 height: 350,
