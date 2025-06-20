@@ -15,7 +15,9 @@ class ForcasResult extends Model
         'forcas_result',
         'err',
         'preode',
-        'actual'
+        'actual',
+        'created_at',
+        'updated_at'
     ];
 
     public function parameter(){

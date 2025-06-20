@@ -83,6 +83,7 @@
                             <th>Preode</th>
                             <th>Aktual</th>
                             <th>Forcasting</th>
+                            <th>Error</th>
                             <th>Parameter</th>
                             <th>MAD</th>
                             <th>MSE</th>
@@ -126,6 +127,7 @@
                     },
                     {data: 'actual', name: 'aktual'},
                     {data: 'forcas_result', name: 'forcasting'},
+                    {data: 'err', name: 'error'},
                     {data: 'parameter.alpha', name: 'alpha'},
                     {data: 'MAD', name: 'mad'},
                     {data: 'MSE', name: 'mse'},
