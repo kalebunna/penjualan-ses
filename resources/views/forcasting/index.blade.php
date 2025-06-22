@@ -39,8 +39,12 @@
                         <div>
                             <label class="form-label d-block invisible">Submit</label>
                             <button type="submit" class="btn btn-primary">Forcas</button>
+                            <button type="button" id="recalculate-btn" class="btn btn-warning ms-2">Recalculate</button>
                         </div>
                     </div>
+                    <small class="text-muted mt-2 d-block">
+                        <strong>Note:</strong> Jika angka prediksi bulan berikutnya tidak sama dengan tabel, klik tombol "Recalculate" untuk menghitung ulang dengan metode yang konsisten.
+                    </small>
                 </form>
             </div>
         </div>
@@ -66,7 +70,7 @@
                                 <select class="form-select" id="parameter-filter" aria-label="Default select example">
                                     <option selected disabled>Open this select menu</option>
                                     @foreach($parameters as $parameter)
-                                        <option value="{{ $parameter->id }}">{{ $parameter->alpha }}</option>
+                                        <option value="{{ $parameter->id }}" {{ request('parameter') == $parameter->id ? 'selected' : '' }}>{{ $parameter->alpha }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -96,6 +100,82 @@
             </div>
         </div>
     </section>
+    @if($nextMonthPrediction)
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Prediksi Bulan Berikutnya</h5>
+                <p class="text-subtitle text-muted">Hasil perhitungan untuk bulan berikutnya menggunakan parameter {{ $nextMonthPrediction['parameter'] }}</p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Prediksi Bulan Berikutnya</h6>
+                                <h4 class="mb-0">{{ \Carbon\Carbon::parse($nextMonthPrediction['month'])->format('F Y') }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Nilai Prediksi (Ft)</h6>
+                                <h4 class="mb-0">{{ number_format($nextMonthPrediction['prediction'], 2, ',', '.') }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">MAD</h6>
+                                <h4 class="mb-0">{{ number_format($nextMonthPrediction['MAD'], 2, ',', '.') }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">MSE</h6>
+                                <h4 class="mb-0">{{ number_format($nextMonthPrediction['MSE'], 2, ',', '.') }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">MAPE</h6>
+                                <h4 class="mb-0">{{ number_format($nextMonthPrediction['MAPE'], 2, ',', '.') }}%</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
+    
+    @if($forecastStatus)
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Status Forecasting</h5>
+                <p class="text-subtitle text-muted">Parameter {{ $forecastStatus['parameter'] }}</p>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <h4 class="alert-heading">Data Belum Di-Forecast!</h4>
+                    <p>{{ $forecastStatus['message'] }}</p>
+                    <hr>
+                    <p class="mb-0">Silakan klik tombol "Forcas" untuk melakukan forecasting dengan parameter ini.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
+    <section class="section">
 @endsection
 
 @section('script')
@@ -125,17 +205,27 @@
                             });
                         }
                     },
-                    {data: 'actual', name: 'aktual'},
-                    {data: 'forcas_result', name: 'forcasting'},
-                    {data: 'err', name: 'error'},
+                    {data: 'actual', name: 'aktual', render: function(data) {
+                        return parseFloat(data).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                    }},
+                    {data: 'forcas_result', name: 'forcasting', render: function(data) {
+                        return parseFloat(data).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }},
+                    {data: 'err', name: 'error', render: function(data) {
+                        return parseFloat(data).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }},
                     {data: 'parameter.alpha', name: 'alpha'},
-                    {data: 'MAD', name: 'mad'},
-                    {data: 'MSE', name: 'mse'},
+                    {data: 'MAD', name: 'mad', render: function(data) {
+                        return parseFloat(data).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }},
+                    {data: 'MSE', name: 'mse', render: function(data) {
+                        return parseFloat(data).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }},
                     {
                         data: 'MAP',
                         name: 'mape',
                         render: function (data, type, row) {
-                            return parseFloat(data) + '%';
+                            return parseFloat(data).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
                         }
                     },
                     {
@@ -156,7 +246,14 @@
                 }
             });
             $('#parameter-filter').on('change', function (e) {
-                table.ajax.reload();
+                const selectedParameter = $(this).val();
+                if (selectedParameter && selectedParameter !== '') {
+                    // Reload page with selected parameter to show next month prediction
+                    window.location.href = "{{ route('forcasting.index') }}?parameter=" + selectedParameter;
+                } else {
+                    // Reload page without parameter
+                    window.location.href = "{{ route('forcasting.index') }}";
+                }
             });
 
             $('#forcasting').on('submit', function (e) {
@@ -174,12 +271,50 @@
                         Toast.fire({
                             icon: 'success',
                             title: 'Data Berhasil di tambahkan'
-                        })
+                        });
+                        // Reload page with parameter to show next month prediction
+                        window.location.href = "{{ route('forcasting.index') }}?parameter=" + parameter;
                     },
                     error: function (xhr) {
                         Toast.fire({
                             icon: 'error',
                             title: `Data Gagal Ditambahkan`
+                        })
+                    }
+                });
+            });
+
+            $('#recalculate-btn').on('click', function (e) {
+                e.preventDefault();
+                const parameter = $('#parameter').val();
+                if (!parameter) {
+                    Toast.fire({
+                        icon: 'warning',
+                        title: 'Pilih parameter terlebih dahulu'
+                    });
+                    return;
+                }
+                
+                $.ajax({
+                    url: "{{ route('forcasting.recalculate') }}",
+                    type: "POST",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id_parameter: parameter
+                    },
+                    success: function (response) {
+                        table.ajax.reload();
+                        Toast.fire({
+                            icon: 'success',
+                            title: response.message || 'Data berhasil dihitung ulang'
+                        });
+                        // Reload page with parameter to show updated next month prediction
+                        window.location.href = "{{ route('forcasting.index') }}?parameter=" + parameter;
+                    },
+                    error: function (xhr) {
+                        Toast.fire({
+                            icon: 'error',
+                            title: `Data Gagal Dihitung Ulang`
                         })
                     }
                 });

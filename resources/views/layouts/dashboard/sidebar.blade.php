@@ -3,12 +3,10 @@
         <div class="sidebar-header position-relative">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="logo">
-                    <a href="{{route('dashboard')}}"
-                    ><img
-                            src="{{asset('/assets/compiled/svg/logo.svg')}}"
-                            alt="Logo"
-                            srcset=""
-                        /></a>
+                    <a href="{{route('dashboard')}}" class="d-flex align-items-center text-decoration-none">
+                        <i class="bi bi-droplet-fill me-2" style="font-size: 1.8rem; color: #667eea;"></i>
+                        <span style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.5rem; color: #667eea; letter-spacing: 0.5px;">BAINA</span>
+                    </a>
                 </div>
                 <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
                     <svg
@@ -98,10 +96,22 @@
                         <span>Parameters</span>
                     </a>
                 </li>
-                <li class="sidebar-item {{request()->path() === 'dashboard/forcasting-result' ?  'active':''}}">
-                    <a href="{{route('forcasting.index')}}" class="sidebar-link">
-                        <i class="bi bi-bar-chart-fill"></i>
-                        <span>Forcasting</span>
+                <li class="sidebar-item {{ request()->is('dashboard/forcasting*') && !request()->is('dashboard/forcasting/best-alpha*') ? 'active' : '' }}">
+                    <a href="{{ route('forcasting.index') }}" class='sidebar-link'>
+                        <i class="bi bi-graph-up"></i>
+                        <span>Forecasting</span>
+                    </a>
+                </li>
+                <li class="sidebar-item {{ request()->is('dashboard/forcasting/best-alpha*') ? 'active' : '' }}">
+                    <a href="{{ route('forcasting.best_alpha') }}" class='sidebar-link'>
+                        <i class="bi bi-trophy-fill"></i>
+                        <span>Analisis Alpha</span>
+                    </a>
+                </li>
+                <li class="sidebar-item {{ request()->is('dashboard/admin*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.index') }}" class='sidebar-link'>
+                        <i class="bi bi-people-fill"></i>
+                        <span>Admin</span>
                     </a>
                 </li>
             </ul>

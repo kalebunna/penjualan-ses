@@ -16,6 +16,8 @@ Route::middleware('auth')->group(function () {
     //    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     //    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/sales-chart', [\App\Http\Controllers\DashboardController::class, 'salesChartData'])->name('dashboard.sales_chart');
+    Route::get('/dashboard/forecast-chart', [\App\Http\Controllers\DashboardController::class, 'forecastChartData'])->name('dashboard.forecast_chart');
     //penjualan Route
     Route::get('/dashboard/penjualan', [\App\Http\Controllers\PenjualanController::class, 'index'])->name('penjualan.index');
     Route::post('/dashboard/penjualan/create', [\App\Http\Controllers\PenjualanController::class, 'store'])->name('penjualan.store');
@@ -31,6 +33,16 @@ Route::middleware('auth')->group(function () {
     //Forcasting Route
     Route::get('dashboard/forcasting', [\App\Http\Controllers\ForcastingController::class, 'index'])->name('forcasting.index');
     Route::post('dashboard/forcasting/create', [\App\Http\Controllers\ForcastingController::class, 'forecast'])->name('forcasting.create');
+    Route::post('dashboard/forcasting/recalculate', [\App\Http\Controllers\ForcastingController::class, 'recalculateForecast'])->name('forcasting.recalculate');
+    Route::get('dashboard/forcasting/best-alpha', [\App\Http\Controllers\ForcastingController::class, 'bestAlpha'])->name('forcasting.best_alpha');
     Route::delete('dashboard/forcasting/delete/{id}', [\App\Http\Controllers\ForcastingController::class, 'destroy'])->name('forcasting.delete');
+    
+    // Admin Routes
+    Route::get('/dashboard/admin', [\App\Http\Controllers\AdminController::class, 'index'])->name('admin.index');
+    Route::get('/dashboard/admin/create', [\App\Http\Controllers\AdminController::class, 'create'])->name('admin.create');
+    Route::post('/dashboard/admin', [\App\Http\Controllers\AdminController::class, 'store'])->name('admin.store');
+    Route::get('/dashboard/admin/{id}/edit', [\App\Http\Controllers\AdminController::class, 'edit'])->name('admin.edit');
+    Route::put('/dashboard/admin/{id}', [\App\Http\Controllers\AdminController::class, 'update'])->name('admin.update');
+    Route::delete('/dashboard/admin/{id}', [\App\Http\Controllers\AdminController::class, 'destroy'])->name('admin.destroy');
 });
 require __DIR__ . '/auth.php';

@@ -5,66 +5,106 @@ namespace App\Http\Controllers;
 use App\Models\ForcasResult;
 use App\Models\Parameters;
 use App\Models\Penjualan;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $p = Parameters::all();
+        $user = Auth::user();
+        $greeting = "Selamat Datang Kembali, " . $user->name . "!";
 
-        //query untuk mengambil data penjualan bulan terakhir
-        // $penjualan = DB::table('penjualan')
-        //             ->selectRaw('To_char(tanggal, \'YYYY-MM\') AS bulan, SUM(total) AS total')
-        //             ->groupByRaw('To_char(tanggal, \'YYYY-MM\')')
-        //             ->orderByRaw('To_char(tanggal, \'YYYY-MM\')')
-        //             ->get();
-
-        //untuk menghitung total semua penjualan
-        $totalPenjualan = Penjualan::sum('total');
-
-        //untuk mengambil hasil prediksi terbaru
-        $prediksiPenjualan = ForcasResult::select('preode', 'forcas_result')
-            ->orderBy('preode', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        //MYSQL query
-        $penjualan = DB::table('penjualan')
-            ->selectRaw('DATE_FORMAT(tanggal, \'%Y-%m\') AS bulan, SUM(total) AS total')
-            ->groupByRaw('DATE_FORMAT(tanggal, \'%Y-%m\')')
-            ->orderByRaw('DATE_FORMAT(tanggal, \'%Y-%m\') DESC')
-            ->limit(1)
-            ->first();
-
-        $totalParameters = count($p);
-
-        $forcastCart = ForcasResult::with('parameter:id,alpha')
-            ->select('preode', 'forcas_result', 'parameter_id')
-            ->orderBy('updated_at', 'asc')
-            ->orderBy('parameter_id', 'asc')
+        $years = DB::table('penjualan')
+            ->selectRaw('DISTINCT YEAR(tanggal) as year')
+            ->orderBy('year', 'desc')
             ->get()
-            ->groupBy(function ($item) {
-                return number_format($item->parameter->alpha, 1);
-            })
-            ->map(function ($group) {
-                return $group->unique('preode')->values();
+            ->pluck('year');
+            
+        $parameters = Parameters::orderBy('alpha')->get();
+            
+        return view('dashboard', compact('greeting', 'years', 'parameters'));
+    }
+
+    public function salesChartData(Request $request): JsonResponse
+    {
+        $year = $request->input('year', Carbon::now()->year);
+
+        $salesData = DB::table('penjualan')
+            ->selectRaw('MONTH(tanggal) as month, SUM(total) as total_sales')
+            ->whereYear('tanggal', $year)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        $labels = [];
+        $data = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthName = Carbon::create(null, $m)->locale('id')->monthName;
+            $labels[] = $monthName;
+            $sale = $salesData->firstWhere('month', $m);
+            $data[] = $sale ? $sale->total_sales : 0;
+        }
+
+        return response()->json(['labels' => $labels, 'data' => $data]);
+    }
+
+    public function forecastChartData(Request $request): JsonResponse
+    {
+        $year = $request->input('year', Carbon::now()->year);
+        $alpha_id = $request->input('alpha_id');
+
+        if (!$alpha_id) {
+            return response()->json(['message' => 'Silakan pilih nilai alpha untuk ditampilkan.'], 400);
+        }
+        
+        $parameter = Parameters::find($alpha_id);
+        if (!$parameter) {
+            return response()->json(['message' => 'Parameter alpha tidak valid.'], 404);
+        }
+
+        $actualSales = DB::table('penjualan')
+            ->selectRaw('MONTH(tanggal) as month, SUM(total) as total')
+            ->whereYear('tanggal', $year)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        if ($actualSales->isEmpty()) {
+            return response()->json(['message' => 'Tidak ada data penjualan untuk tahun yang dipilih.']);
+        }
+
+        $labels = $actualSales->map(function ($sale) use ($year) {
+            return Carbon::createFromDate($year, $sale->month)->locale('id')->monthName;
+        });
+
+        $forecastData = ForcasResult::where('parameter_id', $parameter->id)
+            ->whereYear('preode', $year)
+            ->where('actual', '>', 0)
+            ->orderBy('preode', 'asc')
+            ->get()
+            ->keyBy(function($item) {
+                return Carbon::parse($item->preode)->month;
             });
 
-        $series = [];
-        //        dd($forcastCart);
-        foreach ($forcastCart as $key => $value) {
-            $series[] = [
-                'name' => (string)$key,
-                'data' => $value->pluck('forcas_result'),
-            ];
+        if ($forecastData->isEmpty()) {
+            return response()->json([
+                'message' => 'Data forecast untuk alpha ' . $parameter->alpha . ' di tahun ini belum tersedia. Silakan lakukan forecasting terlebih dahulu.'
+            ], 404);
         }
-        //        dd($series);
-        $categories = $forcastCart->first()->pluck('preode')->map(function ($item) {
-            return date('Y-m', strtotime($item));
+
+        $forecast_values = $actualSales->map(function ($sale) use ($forecastData) {
+            return $forecastData->get($sale->month)->forcas_result ?? null;
         });
-        //        dd($categories);
-        return view('dahsboard', compact('totalParameters', 'penjualan', 'totalPenjualan', 'prediksiPenjualan', 'categories', 'series', 'categories'));
+
+        return response()->json([
+            'labels' => $labels,
+            'actuals' => $actualSales->pluck('total'),
+            'forecasts' => $forecast_values,
+            'alpha' => $parameter->alpha,
+        ]);
     }
 }

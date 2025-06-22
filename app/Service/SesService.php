@@ -6,26 +6,49 @@ class SesService
 {
     /**
      * calculate the single exponential smoothing
-     * @param float $a the smoothing factor or alpha
+     * @param float $a the smoothing factor or alpha (0 < α < 1)
      * @param array $b the array of observed values
+     * @param bool $nextPeriod if true, return only next period forecast
      * @return array the array of forecasted values
      */
     public function singleExponentialSmoothing(float $a, array $b, bool $nextPeriod = false): array|string
     {
+        // Validate alpha value
+        if ($a <= 0 || $a >= 1) {
+            throw new \Exception('Alpha harus antara 0 dan 1 (0 < α < 1)');
+        }
+        
         if (count($b) < 2) {
             throw new \Exception('Data tidak boleh kosong dan minimal harus ada dua data');
         }
 
         $forecast = [];
-        $forecast[0] = (float) $b[0]; // forecast pertama = aktual pertama
-
-        for ($i = 1; $i <= count($b); $i++) {
-            $value = $a * $b[$i-1] + (1 - $a) * $forecast[$i - 1];
-            $forecast[$i] = round($value, 1);
-            if ($nextPeriod === true) {
-                return $forecast[$i];
-            }
+        
+        // Standard SES Initialization: Forecast for the first period is the first actual value.
+        // F(1) = A(1)
+        $forecast[0] = (float) $b[0];
+        
+        // Calculate forecasts for each period
+        // SES Formula: F(t+1) = α * A(t) + (1-α) * F(t)
+        // For period t=1: F(2) = α * A(1) + (1-α) * F(1) -> Since F(1)=A(1), F(2)=A(1)
+        // For period t=2: F(3) = α * A(2) + (1-α) * F(2)
+        
+        for ($i = 1; $i < count($b); $i++) {
+            // Calculate forecast for next period
+            $value = $a * $b[$i-1] + (1 - $a) * $forecast[$i-1];
+            $forecast[$i] = round($value, 2);
         }
+        
+        // Calculate next period forecast (F(n+1))
+        $nextPeriodForecast = $a * $b[count($b)-1] + (1 - $a) * $forecast[count($b)-1];
+        
+        if ($nextPeriod === true) {
+            return round($nextPeriodForecast, 2); // Return only the next period forecast
+        }
+        
+        // Add the next period forecast to the array
+        $forecast[count($b)] = round($nextPeriodForecast, 2);
+        
         return $forecast;
     }
 
@@ -45,6 +68,7 @@ class SesService
         if ($nextPreode === true) {
             $mse = 0;
             $counter = 0;
+            // Calculate MSE for all periods except first (where forecast = actual)
             for ($i = 1; $i < $n; $i++) {
                 $error = $aktual[$i] - $forcast[$i];
                 $mse += pow($error, 2);
@@ -53,11 +77,10 @@ class SesService
             return $mse/$counter;
         }
         $mse = [];
-        $mse[0] = 0;
+        $mse[0] = 0; // No error for first period (forecast = actual)
         for ($i = 1; $i < $n; $i++) {
             $error = $aktual[$i] - $forcast[$i];
             $mse[$i] = pow($error, 2);
-
         }
         return $mse;
     }
@@ -79,14 +102,15 @@ class SesService
         if($nextPreode === true) {
             $mad = 0;
             $counter = 0;
-           for ($i = 1; $i < $n; $i++) {
-               $r = $aktual[$i] - $forcast[$i];
-               $mad += abs($r);
-               $counter++;
-           }
+            // Calculate MAD for all periods except first (where forecast = actual)
+            for ($i = 1; $i < $n; $i++) {
+                $r = $aktual[$i] - $forcast[$i];
+                $mad += abs($r);
+                $counter++;
+            }
             return $mad/$counter;
         }
-        $mad[0] = 0;
+        $mad[0] = 0; // No error for first period (forecast = actual)
         for ($i = 1; $i < $n; $i++) {
             $r = $aktual[$i] - $forcast[$i];
             $mad[$i] = abs($r);
@@ -111,6 +135,7 @@ class SesService
         $count = 0;
         if ($nextPreode === true) {
             $map = 0;
+            // Calculate MAPE for all periods except first (where forecast = actual)
             for ($i = 1; $i < $n; $i++) {
                 $r = $aktual[$i] - $forcast[$i];
                 $a = abs($r / $aktual[$i]);
@@ -119,7 +144,7 @@ class SesService
             }
             return ($map/$count) * 100;
         }
-        $mape[0] =0;
+        $mape[0] = 0; // No error for first period (forecast = actual)
         for ($i = 1; $i < $n; $i++) {
             $r = $aktual[$i] - $forcast[$i];
             $a = abs($r / $aktual[$i]);
