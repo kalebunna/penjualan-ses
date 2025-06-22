@@ -62,7 +62,7 @@
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ $user->name }}</td>
                                             <td>{{ $user->email }}</td>
-                                            <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
+                                            <td>{{isset($user->created_at)? $user->created_at->format('d/m/Y H:i'): "" }}</td>
                                             <td>
                                                 <div class="d-flex gap-2">
                                                     <a href="{{ route('admin.edit', $user->id) }}" 
