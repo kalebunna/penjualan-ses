@@ -34,7 +34,6 @@
         <button class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Log in</button>
     </form>
     <div class="text-center mt-5 text-lg fs-4">
-        <p class="text-gray-600">Tidak punya akun? <a href="{{ route('register') }}" class="font-bold">Daftar</a>.</p>
         @if (Route::has('password.request'))
             <p><a class="font-bold" href="{{ route('password.request') }}">Lupa password?</a></p>
         @endif

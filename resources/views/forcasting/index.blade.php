@@ -39,11 +39,10 @@
                         <div>
                             <label class="form-label d-block invisible">Submit</label>
                             <button type="submit" class="btn btn-primary">Forcas</button>
-                            <button type="button" id="recalculate-btn" class="btn btn-warning ms-2">Recalculate</button>
                         </div>
                     </div>
                     <small class="text-muted mt-2 d-block">
-                        <strong>Note:</strong> Jika angka prediksi bulan berikutnya tidak sama dengan tabel, klik tombol "Recalculate" untuk menghitung ulang dengan metode yang konsisten.
+                        <strong>Note:</strong> Fungsi forecasting akan otomatis mengupdate data yang sudah ada jika parameter yang sama dipilih.
                     </small>
                 </form>
             </div>
@@ -279,42 +278,6 @@
                         Toast.fire({
                             icon: 'error',
                             title: `Data Gagal Ditambahkan`
-                        })
-                    }
-                });
-            });
-
-            $('#recalculate-btn').on('click', function (e) {
-                e.preventDefault();
-                const parameter = $('#parameter').val();
-                if (!parameter) {
-                    Toast.fire({
-                        icon: 'warning',
-                        title: 'Pilih parameter terlebih dahulu'
-                    });
-                    return;
-                }
-                
-                $.ajax({
-                    url: "{{ route('forcasting.recalculate') }}",
-                    type: "POST",
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        id_parameter: parameter
-                    },
-                    success: function (response) {
-                        table.ajax.reload();
-                        Toast.fire({
-                            icon: 'success',
-                            title: response.message || 'Data berhasil dihitung ulang'
-                        });
-                        // Reload page with parameter to show updated next month prediction
-                        window.location.href = "{{ route('forcasting.index') }}?parameter=" + parameter;
-                    },
-                    error: function (xhr) {
-                        Toast.fire({
-                            icon: 'error',
-                            title: `Data Gagal Dihitung Ulang`
                         })
                     }
                 });
