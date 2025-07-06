@@ -21,6 +21,9 @@
             <div class="form-control-icon">
                 <i class="bi bi-shield-lock"></i>
             </div>
+            <div class="form-control-icon-right" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer;">
+                <i class="bi bi-eye" id="togglePassword" onclick="togglePasswordVisibility()"></i>
+            </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
@@ -38,4 +41,21 @@
             <p><a class="font-bold" href="{{ route('password.request') }}">Lupa password?</a></p>
         @endif
     </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePassword');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+            }
+        }
+    </script>
 </x-guest-layout>

@@ -170,7 +170,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: rgba(0,0,0,0.1); backdrop-filter: blur(10px);">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="bi bi-droplet-fill me-2"></i>
+                <img src="{{ asset('logo.jpeg') }}" alt="CV. Baina Basukarta" style="height: 40px; width: auto;" class="me-2">
                 CV. Baina Basukarta
             </a>
             <div class="navbar-nav ms-auto">
@@ -192,7 +192,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-6 hero-content">
                     <h1 class="company-logo">
-                        <i class="bi bi-droplet-fill me-3"></i>
+                        <img src="{{ asset('logo.jpeg') }}" alt="CV. Baina Basukarta" style="height: 80px; width: auto;" class="me-3">
                         CV. Baina Basukarta
                     </h1>
                     <p class="hero-subtitle">
@@ -423,7 +423,7 @@
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <h5 class="mb-3">
-                        <i class="bi bi-droplet-fill me-2"></i>
+                        <img src="{{ asset('logo.jpeg') }}" alt="CV. Baina Basukarta" style="height: 30px; width: auto;" class="me-2">
                         CV. Baina Basukarta
                     </h5>
                     <p class="text-muted">

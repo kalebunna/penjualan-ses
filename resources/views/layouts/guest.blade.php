@@ -17,7 +17,7 @@
                     <div id="auth-left">
                         <div class="auth-logo">
                             <a href="/" class="d-flex align-items-center text-decoration-none">
-                                <i class="bi bi-droplet-fill me-2" style="font-size: 2rem; color: #667eea;"></i>
+                                <img src="{{ asset('logo.jpeg') }}" alt="BAINA" style="height: 60px; width: auto;" class="me-2">
                                 <span style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 2rem; color: #667eea; letter-spacing: 0.5px;">BAINA</span>
                             </a>
                         </div>

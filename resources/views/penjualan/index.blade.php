@@ -134,10 +134,14 @@
                         })
                     },
                     error: function (xhr) {
-                       Toast.fire({
-                           icon:'error',
-                           title: `Data Gagal Ditambahkan`
-                       })
+                        let errorMessage = 'Data Gagal Ditambahkan';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        Toast.fire({
+                            icon:'error',
+                            title: errorMessage
+                        })
                     }
                 });
             });
@@ -166,9 +170,13 @@
                         })
                     },
                     error: function (xhr){
+                        let errorMessage = 'Data Gagal Diupdate';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
                         Toast.fire({
                             icon:'error',
-                            title: `Data Gagal Ditambahkan`
+                            title: errorMessage
                         })
                     }
                 })

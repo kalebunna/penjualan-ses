@@ -52,7 +52,11 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-center">
                 <h5 class="card-title">Hasil Forcasting</h5>
-                <div class="flex accordion-item">
+                <div class="flex accordion-item d-flex gap-2">
+                    <button class="btn btn-success" type="button" id="exportBtn">
+                        <i class="bi bi-download me-1"></i>
+                        Export
+                    </button>
                     <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
                             data-bs-target="#flush-collapseOne" aria-expanded="true" aria-controls="collapseOne">
                         Filter
@@ -253,6 +257,16 @@
                     // Reload page without parameter
                     window.location.href = "{{ route('forcasting.index') }}";
                 }
+            });
+
+            $('#exportBtn').on('click', function (e) {
+                e.preventDefault();
+                const parameter = $('#parameter-filter').val();
+                let exportUrl = "{{ route('forcasting.export') }}";
+                if (parameter && parameter !== '') {
+                    exportUrl += "?parameter=" + parameter;
+                }
+                window.location.href = exportUrl;
             });
 
             $('#forcasting').on('submit', function (e) {

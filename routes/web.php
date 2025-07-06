@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::get('dashboard/forcasting', [\App\Http\Controllers\ForcastingController::class, 'index'])->name('forcasting.index');
     Route::post('dashboard/forcasting/create', [\App\Http\Controllers\ForcastingController::class, 'forecast'])->name('forcasting.create');
     Route::get('dashboard/forcasting/best-alpha', [\App\Http\Controllers\ForcastingController::class, 'bestAlpha'])->name('forcasting.best_alpha');
+    Route::get('dashboard/forcasting/export', [\App\Http\Controllers\ForcastingController::class, 'export'])->name('forcasting.export');
     Route::delete('dashboard/forcasting/delete/{id}', [\App\Http\Controllers\ForcastingController::class, 'destroy'])->name('forcasting.delete');
     
     // Admin Routes

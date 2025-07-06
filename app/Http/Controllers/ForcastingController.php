@@ -270,4 +270,61 @@ class ForcastingController extends Controller
             return redirect()->route('forcasting.index')->with('error', $exception->getMessage());
         }
     }
+
+    /**
+     * Export forecasting data to Excel
+     *
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export(Request $request)
+    {
+        try {
+            $query = ForcasResult::with('parameter');
+            
+            // Filter by parameter if provided
+            if ($request->has('parameter') && $request->parameter != null) {
+                $query = $query->where('parameter_id', $request->parameter);
+            }
+            
+            $data = $query->orderBy('preode', 'asc')->get();
+            
+            // Create CSV content
+            $csvContent = "No,Periode,Aktual,Forecasting,Error,Parameter,MAD,MSE,MAPE\n";
+            
+            foreach ($data as $index => $row) {
+                $periode = Carbon::parse($row->preode)->format('F Y');
+                $actual = number_format($row->actual, 0, ',', '.');
+                $forecasting = number_format($row->forcas_result, 2, ',', '.');
+                $error = number_format($row->err, 2, ',', '.');
+                $parameter = $row->parameter->alpha;
+                $mad = number_format($row->MAD, 2, ',', '.');
+                $mse = number_format($row->MSE, 2, ',', '.');
+                $mape = number_format($row->MAP, 2, ',', '.') . '%';
+                
+                $csvContent .= sprintf(
+                    "%d,%s,%s,%s,%s,%s,%s,%s,%s\n",
+                    $index + 1,
+                    $periode,
+                    $actual,
+                    $forecasting,
+                    $error,
+                    $parameter,
+                    $mad,
+                    $mse,
+                    $mape
+                );
+            }
+            
+            $filename = 'forecasting_data_' . date('Y_m_d_H_i_s') . '.csv';
+            
+            return response($csvContent, 200, [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]);
+            
+        } catch (\Exception $exception) {
+            return redirect()->route('forcasting.index')->with('error', 'Gagal mengekspor data: ' . $exception->getMessage());
+        }
+    }
 }
