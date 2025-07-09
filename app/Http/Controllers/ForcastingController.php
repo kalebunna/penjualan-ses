@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ForcastingController extends Controller
 {
@@ -272,7 +273,7 @@ class ForcastingController extends Controller
     }
 
     /**
-     * Export forecasting data to Excel
+     * Export forecasting data to PDF
      *
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
@@ -282,49 +283,80 @@ class ForcastingController extends Controller
         try {
             $query = ForcasResult::with('parameter');
             
+            // Filter information
+            $filterInfo = [
+                'hasFilter' => false,
+                'alpha' => null
+            ];
+            
             // Filter by parameter if provided
             if ($request->has('parameter') && $request->parameter != null) {
                 $query = $query->where('parameter_id', $request->parameter);
+                $parameter = Parameters::find($request->parameter);
+                $filterInfo['hasFilter'] = true;
+                $filterInfo['alpha'] = $parameter->alpha;
             }
             
             $data = $query->orderBy('preode', 'asc')->get();
             
-            // Create CSV content
-            $csvContent = "No,Periode,Aktual,Forecasting,Error,Parameter,MAD,MSE,MAPE\n";
+            // Calculate next month prediction
+            $nextMonthPrediction = $this->calculateNextMonthPrediction($data);
             
-            foreach ($data as $index => $row) {
-                $periode = Carbon::parse($row->preode)->format('F Y');
-                $actual = number_format($row->actual, 0, ',', '.');
-                $forecasting = number_format($row->forcas_result, 2, ',', '.');
-                $error = number_format($row->err, 2, ',', '.');
-                $parameter = $row->parameter->alpha;
-                $mad = number_format($row->MAD, 2, ',', '.');
-                $mse = number_format($row->MSE, 2, ',', '.');
-                $mape = number_format($row->MAP, 2, ',', '.') . '%';
-                
-                $csvContent .= sprintf(
-                    "%d,%s,%s,%s,%s,%s,%s,%s,%s\n",
-                    $index + 1,
-                    $periode,
-                    $actual,
-                    $forecasting,
-                    $error,
-                    $parameter,
-                    $mad,
-                    $mse,
-                    $mape
-                );
-            }
-            
-            $filename = 'forecasting_data_' . date('Y_m_d_H_i_s') . '.csv';
-            
-            return response($csvContent, 200, [
-                'Content-Type' => 'text/csv',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            // Generate PDF
+            $pdf = Pdf::loadView('forcasting.export_pdf', [
+                'data' => $data,
+                'filterInfo' => $filterInfo,
+                'nextMonthPrediction' => $nextMonthPrediction
             ]);
+            
+            // Set paper size and orientation
+            $pdf->setPaper('A4', 'landscape');
+            
+            $filename = 'laporan_forecasting_' . date('Y_m_d_H_i_s') . '.pdf';
+            
+            return $pdf->download($filename);
             
         } catch (\Exception $exception) {
             return redirect()->route('forcasting.index')->with('error', 'Gagal mengekspor data: ' . $exception->getMessage());
         }
+    }
+    
+    /**
+     * Calculate next month prediction based on current data
+     *
+     * @param Collection $data
+     * @return array
+     */
+    private function calculateNextMonthPrediction($data)
+    {
+        if ($data->isEmpty()) {
+            return [
+                'month' => Carbon::now()->addMonth()->format('F Y'),
+                'value' => 0,
+                'alpha' => 0,
+                'mape' => 0
+            ];
+        }
+        
+        // Get the latest data point
+        $latestData = $data->last();
+        $alpha = $latestData->parameter->alpha;
+        
+        // Calculate next month prediction using the last forecasting result
+        $nextMonthValue = $latestData->forcas_result;
+        
+        // Calculate average MAPE for accuracy
+        $avgMape = $data->avg('MAP');
+        
+        // Get next month name
+        $lastPeriod = Carbon::parse($latestData->preode);
+        $nextMonth = $lastPeriod->addMonth()->format('F Y');
+        
+        return [
+            'month' => $nextMonth,
+            'value' => $nextMonthValue,
+            'alpha' => $alpha,
+            'mape' => $avgMape
+        ];
     }
 }
